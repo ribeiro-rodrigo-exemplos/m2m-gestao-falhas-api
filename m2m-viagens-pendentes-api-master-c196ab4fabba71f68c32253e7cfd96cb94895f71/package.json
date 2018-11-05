@@ -1,0 +1,55 @@
+{
+  "name": "m2m-viagens-pendentes-api",
+  "version": "2.0.3",
+  "description": "Projeto Viagens Pendente",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "forecast"
+  ],
+  "author": "Bruno Lima do Nascimento",
+  "license": "ISC",
+  "dependencies": {
+    "amqp": "0.2.6",
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "^1.17.1",
+    "common-errors": "0.4.18",
+    "compression": "^1.6.2",
+    "connect-timeout": "^1.8.0",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.3",
+    "express": "^4.15.2",
+    "express-load": "^1.1.15",
+    "express-session": "^1.15.2",
+    "express-xml-bodyparser": "^0.3.0",
+    "m2m-node-models": "1.0.0",
+    "m2m-node-utils": "1.2.1",
+    "moment": "^2.18.1",
+    "moment-duration-format": "^1.3.0",
+    "moment-timezone": "0.5.13",
+    "mongoose": "^4.9.6",
+    "mongoose-paginate": "^5.0.3",
+    "mongoose-redis-cache": "0.0.3",
+    "multer": "^1.3.0",
+    "mysql": "^2.15.0",
+    "neo-async": "^2.1.0",
+    "nodemailer": "^1.5.0",
+    "passport": "^0.3.2",
+    "jsonwebtoken": "5.0.4",
+    "passport-http-bearer": "1.0.1",
+    "q": "^1.5.0",
+    "restler": "^3.4.0",
+    "route-cache": "^0.4.4",
+    "sequelize": "2.0.5",
+    "thenby": "^1.3.0",
+    "util": "^0.10.3",
+    "winston": "^2.3.1",
+    "xml2js": "^0.4.17"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.m2mfacil.com.br:m2msolutions/m2m-service-api.git"
+  }
+}
