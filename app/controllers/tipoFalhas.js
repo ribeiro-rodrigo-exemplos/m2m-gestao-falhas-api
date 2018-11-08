@@ -20,42 +20,68 @@ var Q = require('q');
 var moment = require('moment');
 var mongoose = require('mongoose');
 var momentTimezone = require('moment-timezone');
-var m2merr = require('../util/m2merr');
+//var m2merr = require('../util/m2merr');
 
-var MensagemObsViagem = mongoose.model('MensagemObsViagem');
+var TipoFalhas = mongoose.model('TipoFalhas');
 
 
 exports.incluir = function(req, res) {
     var deferred = Q.defer();
-    var msg = new m2merr.InternalError("Erro no Servidor");
+  //  var msg = new m2merr.InternalError("Erro no Servidor");
 
     var clienteId = req.body.clienteId;
-    var mensagemCod = decodeURIComponent(req.body.mensagem);
+    var observacao = decodeURIComponent(req.body.mensagem);
+    var descricao = decodeURIComponent(req.body.descricao);
 
     var gmtCliente = req.user.gmtCliente;
+    
+    if(observacao == "undefined"){
+        var observacao = "Sem Observação";
+    }
 
     var filter = {
         clienteId: clienteId,
-        mensagem: mensagemCod,
+        descricao: descricao,
+        observacao: observacao,
         ativo: true
     };
+    
+    if(req.body._id){
+        TipoFalhas.update({
+            '_id': mongoose.Types.ObjectId(req.body._id),
+            clienteId: clienteId
+        }, {
+            $set: {
+                descricao: descricao,
+                observacao: observacao,
+                //dataAtualizacao: dataAtualizacao
+            }
+        }, function(err, mensagemResult) {
+            if (err) {
+                var e = new m2merr.InternalError('Server Error');
+                deferred.reject(e);
+            } else {
+                deferred.resolve('Mensagem alterada com Sucesso!');
+            }
+        });
+    }
 
     TipoFalhas.find(filter, function(err, mensagem) {
 
         if (err) {
             deferred.reject(err);
-        } else {
+        } /*else {
 
             if (mensagem.length != 0) {
                 msg = new m2merr.InvalidArgument("Mensagem já cadastrada.");
-                deferred.reject(msg);
-            } else {
+                deferred.reject(err);
+            } else {*/
 
                 var dataAtual = momentTimezone.tz(new Date(), gmtCliente).toDate();
 
                 var mensagemNova = new TipoFalhas({
                     descricao: descricao,
-                    observacao: mensagemCod,
+                    observacao: observacao,
                     clienteId: clienteId,
                     ativo: true,
                     dataAtualizacao: dataAtual,
@@ -63,14 +89,14 @@ exports.incluir = function(req, res) {
 
                 mensagemNova.save(function (error) {
                     if (error) {
-                        deferred.reject(new m2merr.InternalError('Server Error'));
+                      //  deferred.reject(new m2merr.InternalError('Server Error'));
                     } else {
                         deferred.resolve('Mensagem salva com Sucesso!');
                     }
                 });
 
-            }
-        }
+        //    }
+      //  }
     });
     return deferred.promise;
 
@@ -78,7 +104,7 @@ exports.incluir = function(req, res) {
 
 
 
-exports.editarMensagem = function(req, res) {
+exports.editar = function(req, res) {
     var deferred = Q.defer();
 
     var gmtCliente = req.user.gmtCliente;
@@ -110,39 +136,83 @@ exports.editarMensagem = function(req, res) {
 
 
 
-exports.consultarMsg = function (req, res) {
+// exports.consultarFalha = function (req, res) {
+//     var deferred = Q.defer();
+//    // var msg = new m2merr.InternalError("Erro no Servidor");
+//    var clienteId = req.params.clienteId;
+//    //var mensagem = req.params.mensagem;
+
+//     var filtroQuery = {
+//         "ativo": true,
+//         "clienteId" : Number(clienteId),
+//         "descricao": {$exists: true}
+//     };
+
+//     var camposDeRetornos = "clienteId descricao observacao"
+
+//     TipoFalhas.find(filtroQuery, camposDeRetornos, function ( err, tipoFalhas/*{ "descricao" : 1 } ).exec(function(err, mensagemResul)*/) {
+//         //, function(err, mensagemResul) {
+
+//         if (tipoFalhas) {
+//             deferred.resolve(tipoFalhas);
+//         } else {
+//             deferred.reject(err);
+//         }
+
+//     });
+//     return deferred.promise;
+
+// }
+
+exports.consultar = function (req, res) {
     var deferred = Q.defer();
-    var msg = new m2merr.InternalError("Erro no Servidor");
-
-    var clienteId = req.params.clienteId;
-
-    var mensagem = req.params.mensagem;
-
-    var filter = {
-        clienteId: clienteId,
-        ativo: true
+   // var msg = new m2merr.InternalError("Erro no Servidor");
+   
+   var mensagem = req.params.mensagem;
+if(req.params.mensagem != 209){
+    var descricao = mensagem;
+    
+    var filtroQuery = {
+        "ativo": true,
+        //"clienteId" : Number(clienteId),
+        "descricao": [/descricao/]
     };
 
-    if(mensagem != "undefined") {
-        filter.mensagem = {
-            "$regex": mensagem, "$options": "i"
-        }
-    }
+    var camposDeRetornos = "clienteId descricao observacao"
 
-    TipoFalhas.find(filter).sort( { "mensagem" : 1 } ).exec(function(err, mensagemResul) {
+    TipoFalhas.find(filtroQuery, camposDeRetornos, function ( err, tipoFalhas/*{ "descricao" : 1 } ).exec(function(err, mensagemResul)*/) {
         //, function(err, mensagemResul) {
 
-        if (mensagemResul) {
-            deferred.resolve(mensagemResul);
+        if (tipoFalhas) {
+            deferred.resolve(tipoFalhas);
         } else {
-            deferred.reject(msg);
+            deferred.reject(err);
         }
 
     });
     return deferred.promise;
+}else{
+    var filtroQuery = {
+        "ativo": true,
+        "clienteId" : req.user.idCliente,
+        "descricao": {$exists: true}
+    }
 
+    var camposDeRetornos = "clienteId descricao observacao"
+
+    TipoFalhas.find(filtroQuery, camposDeRetornos, function ( err, tipoFalhas/*{ "descricao" : 1 } ).exec(function(err, mensagemResul)*/) {
+        //, function(err, mensagemResul) {
+
+        if (tipoFalhas) {
+            deferred.resolve(tipoFalhas);
+        } else {
+            deferred.reject(err);
+        }
+
+    });
+    return deferred.promise;
 }
-
+}
 
 exports.consultarTodos = function (req, res) {
     var deferred = Q.defer();
@@ -165,37 +235,24 @@ exports.consultarTodos = function (req, res) {
     return deferred.promise;
 }
 
-exports.excluirMensagem = function(req, res) {
+exports.excluir = function(req, res) {
 
-    var idMensagem = req.params.mensagemObsViagemId;
-    var clienteId = req.params.clienteId;
+    var id = req.params.id;
     var deferred = Q.defer();
 
-    var gmtCliente = req.user.gmtCliente;
-
-    if (clienteId == null || clienteId == "") {
-        var e = new m2merr.InvalidArgument('O código do cliente precisa ser definido');
-        return Q.reject(e);
-    }
-
-    if (idMensagem == null || idMensagem == "") {
-        var e = new m2merr.InvalidArgument('O código da Mensagem precisa ser definido');
-        return Q.reject(e);
-    }
 
      var filter = {
-        _id : mongoose.Types.ObjectId(idMensagem),
-        clienteId: clienteId
+        _id : mongoose.Types.ObjectId(id),
     }
 
-    TipoFalhas.findOne(filter, function(err, mensagem) {
+    TipoFalhas.findOne(filter, function(err, id) {
 
-        if(mensagem){
+        if(id){
             //Dados necessários para Auditoria
             req.session.dados = [];
-            req.session.dados[0] = mensagem;
+            req.session.dados[0] = id;
 
-            TipoFalhas.remove(filter, function(err, msg) {
+            TipoFalhas.remove(filter, function(err) {
                 if(err){
                     deferred.reject(err);
                 }else{
